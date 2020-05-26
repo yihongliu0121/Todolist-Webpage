@@ -1,0 +1,114 @@
+{% extends 'layout.html' %}
+{% block container %}
+<div class="container">
+  <div class="layout">
+    <h1> Todo List</h1>
+    <table class="table table-striped table-bordered table-hover">
+      <thead class="thead-inverse">
+        <tr>
+          <th style="text-align:center;">Index</th>
+          <th style="text-align:center;">Content</th>
+          <th style="text-align:center;">Operator</th>
+        </tr>
+      </thead>
+      <tbody id="todo_body">
+      </tbody>
+    </table>
+    <hr>
+    <form class="form">
+      <div class="form-group">
+        <label for="">Input One TODO List</label>
+      </div>
+      <div class="form-group">
+        <input class="form-control" type="text" name="todolist" value="">
+      </div>
+      <div class="form-group">
+        <button class="btn btn-primary" type="button" name="button" onclick="save(event);"> Save </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script type="text/javascript">
+
+  var nums = 0;
+
+  function appendTableRow(index, data) {
+    var trHtml =
+    '<tr>' +
+      '<td>' + index + '</td>' +
+      '<td name="content">' + data + '</td>' +
+      '<td>' +
+        '<button type="button" class="btn btn-sm btn-success" onclick="onFinish(\'' + data + '\')">Finish</button>' +
+        '<button type="button" class="btn btn-sm btn-danger" onclick="onDelete(\'' + data + '\')">Delete</button>' +
+      '</td>' +
+    '</tr>';
+    $('#todo_body').append(trHtml);
+  }
+
+  function save(event) {
+    var list = $('input[name=todolist]').val();
+    $.ajax({
+      method: 'POST',
+      url: '/list/add',
+      data: {
+        list: list
+      }
+    }).done(function(result) {
+      if (result === 'success') {
+        appendTableRow(++nums, list);
+      }
+    }).fail(function(result) {
+      console.log(result);
+    });
+  }
+
+  function onDelete(list) {
+    $.ajax({
+      method: 'POST',
+      url: '/list/delete',
+      data: {
+        list: list
+      }
+    }).done(function(result) {
+      if (result === 'success') {
+        window.location.reload();
+      }
+    }).fail(function(result) {
+      console.log(result);
+    });
+  }
+
+  function onFinish(list) {
+    $.ajax({
+      method: 'POST',
+      url: '/list/done',
+      data: {
+        list: list
+      }
+    }).done(function(result) {
+      if (result === 'success') {
+        window.location.reload();
+      }
+    }).fail(function(result) {
+      console.log(result);
+    });
+  }
+
+  $(function() {
+    $.ajax({
+      method: 'GET',
+      url: '/list/all',
+      dataType: 'json'
+    }).done(function(result) {
+      for (var i = 0; i < result.length; i++) {
+        if (result[i] != null && result[i] != '') {
+          appendTableRow(i + 1, result[i]);
+          nums++;
+        }
+      }
+    }).fail(function(result) {
+      console.log(result);
+    });
+  });
+</script>
+{% endblock %}
